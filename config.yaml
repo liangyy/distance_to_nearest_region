@@ -1,0 +1,10 @@
+yuwen:
+  region: '/project2/xinhe/yanyul/repo/extract_intron_from_gff3/intron/gencode.v27lift37.basic__intron.bed.gz'
+  variant:
+    A: '/project2/xinhe/TADA-A/data/spidex_public_noncommercial_v1_0.tab_alt_A_lower10pct.bed'
+    T: '/project2/xinhe/TADA-A/data/spidex_public_noncommercial_v1_0.tab_alt_T_lower10pct.bed'
+    C: '/project2/xinhe/TADA-A/data/spidex_public_noncommercial_v1_0.tab_alt_C_lower10pct.bed'
+    G: '/project2/xinhe/TADA-A/data/spidex_public_noncommercial_v1_0.tab_alt_G_lower10pct.bed'
+  params:
+    prefiltering_window_size: 10000
+    genome_size: '/project2/xinhe/yanyul/databases/hg19_complete/hg19.chrom.sizes'
