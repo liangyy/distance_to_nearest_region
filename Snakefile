@@ -43,10 +43,38 @@ rule prefiltering:
             -b <(zcat {input.region} | awk -F"\\t" -v OFS="\\t" '{{print $1,$2,$3}}') \
             -wao | gzip > {output[0]}'''
 
-rule get_distance:
+def get_all_split_files(chrms):
+    chrms = chrms.split(',')
+    out = []
+    for chrm in chrms:
+        out.append('temp/intersect__{{taskname}}__{{dataname}}__{chrm}.bed.gz'.format(chrm = chrm))
+    return out
+
+rule split_by_chrm:
     input:
         'temp/intersect__{taskname}__{dataname}.bed.gz'
+    params:
+        lambda wildcards: config[wildcards.taskname]['params']['chromosomes']
+    output:
+        lambda wildcards: get_all_split_files(config[wildcards.taskname]['params']['chromosomes'])
+    shell:
+        'python scripts/split_by_chrm.py --input {input[0]} \
+            --chrm {params[0]} \
+            --prefix temp/intersect__{wildcards.taskname}__{wildcards.dataname}__ \
+            --suffix .bed.gz'
+
+rule get_distance:
+    input:
+        'temp/intersect__{taskname}__{dataname}__{chrm}.bed.gz'
+    output:
+        'output/distance__{taskname}__{dataname}__{chrm}.tab.gz'
+    shell:
+        'Rscript scripts/bed2distance.R --intersection {input[0]} --output {output[0]}'
+
+rule merge_chrm:
+    input:
+        lambda wildcards: get_all_split_files(config[wildcards.taskname]['params']['chromosomes'])
     output:
         'output/distance__{taskname}__{dataname}.tab.gz'
     shell:
-        'Rscript scripts/bed2distance.R --intersection {input[0]} --output {output[0]}'
+        'bedtools sort -i <(zcat {input}) | gzip > {output[0]}'
