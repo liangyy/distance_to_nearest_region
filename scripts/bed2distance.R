@@ -13,15 +13,15 @@ opt_parser <- OptionParser(option_list=option_list)
 opt <- parse_args(opt_parser)
 
 library(dplyr)
-inter <- read.table(args$region, header = F, sep = '\t')
+inter <- read.table(opt$intersection, header = F, sep = '\t')
 inter$junction.pos <- (inter$V5 + inter$V6 - 1) / 2
 inter$distance <- abs(inter$V2 - inter$junction.pos)
 inter$variant.id <- paste(inter$V1, inter$V2, inter$V3, sep = '-')
-result %>%
+result <- inter %>%
   group_by(variant.id) %>%
   summarize(nearest.distance = min(distance), valid = sum(junction.pos) > 0) %>%
 
 result[!result$valid, 'nearest.distance'] <- NA
-gz <- gzfile(args$output, "w")
+gz <- gzfile(opt$output, "w")
 write.table(result, gz, col.names = T, row.names = F, quote = F)
 close(gz1)
