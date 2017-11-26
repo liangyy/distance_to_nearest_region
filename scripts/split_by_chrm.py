@@ -9,7 +9,7 @@ args = parser.parse_args()
 
 import os
 chrm = args.chrm
-cmd = 'zcat {inp} | grep {chrm} | gzip > {output}'.format(inp = args.input,
+cmd = 'zcat {inp} | grep -w {chrm} | gzip > {output}'.format(inp = args.input,
     chrm = chrm,
     output = args.output)
 os.system(cmd)

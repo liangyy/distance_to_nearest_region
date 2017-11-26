@@ -56,7 +56,7 @@ rule split_by_chrm:
     params:
         lambda wildcards: wildcards.chrm
     output:
-        'temp/intersect__{taskname}__{dataname}__{chrm}.bed.gz'
+        temp('temp/intersect__{taskname}__{dataname}__{chrm}.bed.gz')
     shell:
         'python scripts/split_by_chrm.py --input {input[0]} \
             --output {output[0]} --chrm {params[0]}'
@@ -77,3 +77,9 @@ rule merge_chrm:
         'output/distance__{taskname}__{dataname}.tab.gz'
     shell:
         'bedtools sort -i <(zcat {input}) | gzip > {output[0]}'
+
+rule plot_rmd:
+    input:
+        'output/distance__{taskname}__{dataname}.tab.gz'
+    output:
+        ''
