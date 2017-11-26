@@ -43,13 +43,6 @@ rule prefiltering:
             -b <(zcat {input.region} | awk -F"\\t" -v OFS="\\t" '{{print $1,$2,$3}}') \
             -wao | gzip > {output[0]}'''
 
-def get_all_split_files(chrms, task, data):
-    chrms = chrms.split(',')
-    out = []
-    for chrm in chrms:
-        out.append('temp/distance__{taskname}__{dataname}__{chrm}.tab.gz'.format(chrm = chrm, taskname = task, dataname = data))
-    return out
-
 rule split_by_chrm:
     input:
         'temp/intersect__{taskname}__{dataname}.bed.gz'
@@ -78,8 +71,61 @@ rule merge_chrm:
     shell:
         'bedtools sort -i <(zcat {input}) | gzip > {output[0]}'
 
+def get_all_data(taskname, config):
+    out = []
+    for data in config[taskname]['variant']:
+        out.append('output/distance__{taskname}__{dataname}.tab.gz'.format(taskname = taskname, dataname = data))
+    return out
+
+def get_all_data_str(taskname, config):
+    out = get_all_data(taskname, config)
+    return ','.join(out)
+
 rule plot_rmd:
-    input:
-        'output/distance__{taskname}__{dataname}.tab.gz'
+    params:
+        lambda wildcards: get_all_data_str(wildcards.taskname, config),
+        lambda wildcards: config[wildcards.taskname]['params']['prefiltering_window_size']
     output:
-        ''
+        'report/{taskname}.rmd'
+    run:
+        rmd = '''---
+title: "Histogram of distance to splicing junction"
+output:
+    html_document:
+        number_sections: true
+        toc: true
+        toc_depth: 3
+        toc_float: true
+author: Yanyu Liang
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+---
+
+```{{r, results='asis'}}
+library(stringr)
+library(pander)
+files <- strsplit('{file_str}', ',')[[1]]
+headers <- str_match(files, 'distance__(.+)__(.+).tab.gz')
+for (i in 1 : nrow(e)){{
+  file <- headers[i, 1]
+  taskname <- headers[i, 2]
+  data <- headers[i, 3]
+  cat("#", paste(data, 'in', taskname), "\n")
+  distance <- read.table(file, sep = '\t', header = F)
+  count <- table(distance$V5)
+  names(count) <- c('dist <= {thre_dist}', 'dist > {thre_dist}')
+  pander(count)
+  hist(distance$V4, main = 'distance to nearest splicing junction')
+}}
+```
+'''.format(file_str = params[0], thre_dist = params[1])
+        o = open(output[0], 'w')
+        o.write(rmd)
+        o.close()
+
+rule plot_html:
+    input:
+        lambda wildcards: get_all_data(wildcards.taskname, config)
+    output:
+        'report/{taskname}.rmd'
+    shell:
+        '''Rscript -e "rmarkdown::render('{input[0]}')"'''
