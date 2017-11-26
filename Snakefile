@@ -130,11 +130,15 @@ for (i in 1 : nrow(headers)){{
   taskname <- headers[i, 2]
   data <- headers[i, 3]
   cat("#", paste(data, 'in', taskname), "\\n")
+  cat("#", paste(data, 'in', taskname), "\\n")
   distance <- read.table(file, sep = '\\t', header = F)
   count <- table(factor(distance$V5, levels = c(T, F)))
   names(count) <- c('dist <= {thre_dist}', 'dist > {thre_dist}')
+  cat("#", paste(data, 'in', taskname), "\\n")
   pander(count)
+  cat("#", paste(data, 'in', taskname), "\\n")
   hist(distance$V4, main = 'distance to nearest splicing junction')
+  cat("#", paste(data, 'in', taskname), "\\n")
 }}
 ```
 '''.format(file_str = params[0], thre_dist = params[1])
