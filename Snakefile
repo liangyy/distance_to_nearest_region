@@ -117,12 +117,13 @@ date: "`r format(Sys.time(), '%d %B, %Y')`"
 ---
 
 ```{{r setup}}
+library(stringr)
+library(pander)
 knitr::opts_knit$set(root.dir = '../')
+panderOptions('knitr.auto.asis', FALSE)
 ```
 
 ```{{r, results='asis'}}
-library(stringr)
-library(pander)
 files <- strsplit('{file_str}', ',')[[1]]
 headers <- str_match(files, 'output/distance__(.+)__(.+).tab.gz')
 for (i in 1 : nrow(headers)){{
@@ -130,15 +131,15 @@ for (i in 1 : nrow(headers)){{
   taskname <- headers[i, 2]
   data <- headers[i, 3]
   cat("#", paste(data, 'in', taskname), "\\n")
-  cat("#", paste(data, 'in', taskname), "\\n")
+  cat("\\n")
   distance <- read.table(file, sep = '\\t', header = F)
   count <- table(factor(distance$V5, levels = c(T, F)))
   names(count) <- c('dist <= {thre_dist}', 'dist > {thre_dist}')
-  cat("#", paste(data, 'in', taskname), "\\n")
+  cat("\\n")
   pander(count)
-  cat("#", paste(data, 'in', taskname), "\\n")
+  cat("\\n")
   hist(distance$V4, main = 'distance to nearest splicing junction')
-  cat("#", paste(data, 'in', taskname), "\\n")
+  cat("\\n")
 }}
 ```
 '''.format(file_str = params[0], thre_dist = params[1])
