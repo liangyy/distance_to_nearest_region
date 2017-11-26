@@ -1,6 +1,10 @@
 # this module takes variant and region file
 # output the distance of each variant to nearest region
 
+rule all:
+    input:
+        lambda config: 'report/{taskname}.html'.format(taskname = list(config.keys()[0])
+
 rule prepare_junction:
     input:
         region = lambda wildcards: config[wildcards.taskname]['region']
@@ -126,6 +130,6 @@ rule plot_html:
     input:
         lambda wildcards: get_all_data(wildcards.taskname, config)
     output:
-        'report/{taskname}.rmd'
+        'report/{taskname}.html'
     shell:
         '''Rscript -e "rmarkdown::render('{input[0]}')"'''
