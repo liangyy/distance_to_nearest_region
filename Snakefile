@@ -140,6 +140,7 @@ for (i in 1 : nrow(headers)){{
   cat("\\n")
   hist(distance$V4, main = 'distance to nearest splicing junction')
   cat("\\n")
+  cat("\\n")
 }}
 ```
 '''.format(file_str = params[0], thre_dist = params[1])
