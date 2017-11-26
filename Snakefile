@@ -54,14 +54,12 @@ rule split_by_chrm:
     input:
         'temp/intersect__{taskname}__{dataname}.bed.gz'
     params:
-        lambda wildcards: config[wildcards.taskname]['params']['chromosomes']
+        lambda wildcards: wildcards.chrm
     output:
-        lambda wildcards: get_all_split_files(config[wildcards.taskname]['params']['chromosomes'])
+        'temp/intersect__{taskname}__{dataname}__{chrm}.bed.gz'
     shell:
         'python scripts/split_by_chrm.py --input {input[0]} \
-            --chrm {params[0]} \
-            --prefix temp/intersect__{wildcards.taskname}__{wildcards.dataname}__ \
-            --suffix .bed.gz'
+            --output {output[0]} --chrm {params[0]}'
 
 rule get_distance:
     input:
