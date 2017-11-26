@@ -1,9 +1,13 @@
 # this module takes variant and region file
 # output the distance of each variant to nearest region
 
+def get_report(config):
+    r = 'report/{taskname}.html'.format(taskname = list(config.keys())[0])
+    return r
+
 rule all:
     input:
-        lambda config: 'report/{taskname}.html'.format(taskname = list(config.keys()[0])
+        get_report(config)
 
 rule prepare_junction:
     input:
@@ -66,6 +70,14 @@ rule get_distance:
     shell:
         'Rscript scripts/bed2distance.R --intersection {input[0]} --output {output[0]}'
 
+def get_all_split_files(chrm, taskname, dataname):
+    out = []
+    chrms = chrm.split(',')
+    for c in chrms:
+        out.append('temp/distance__{taskname}__{dataname}__{chrm}.tab.gz'.format(taskname = taskname, dataname = dataname, chrm = c))
+    return out
+
+
 rule merge_chrm:
     input:
         lambda wildcards: get_all_split_files(config[wildcards.taskname]['params']['chromosomes'], wildcards.taskname, wildcards.dataname)
@@ -90,7 +102,7 @@ rule plot_rmd:
         lambda wildcards: get_all_data_str(wildcards.taskname, config),
         lambda wildcards: config[wildcards.taskname]['params']['prefiltering_window_size']
     output:
-        'report/{taskname}.rmd'
+        temp('report/{taskname}.rmd')
     run:
         rmd = '''---
 title: "Histogram of distance to splicing junction"
@@ -104,18 +116,22 @@ author: Yanyu Liang
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 ---
 
+```{{r setup}}
+knitr::opts_knit$set(root.dir = '../')
+```
+
 ```{{r, results='asis'}}
 library(stringr)
 library(pander)
 files <- strsplit('{file_str}', ',')[[1]]
-headers <- str_match(files, 'distance__(.+)__(.+).tab.gz')
-for (i in 1 : nrow(e)){{
+headers <- str_match(files, 'output/distance__(.+)__(.+).tab.gz')
+for (i in 1 : nrow(headers)){{
   file <- headers[i, 1]
   taskname <- headers[i, 2]
   data <- headers[i, 3]
-  cat("#", paste(data, 'in', taskname), "\n")
-  distance <- read.table(file, sep = '\t', header = F)
-  count <- table(distance$V5)
+  cat("#", paste(data, 'in', taskname), "\\n")
+  distance <- read.table(file, sep = '\\t', header = F)
+  count <- table(factor(distance$V5, levels = c(T, F)))
   names(count) <- c('dist <= {thre_dist}', 'dist > {thre_dist}')
   pander(count)
   hist(distance$V4, main = 'distance to nearest splicing junction')
@@ -128,6 +144,7 @@ for (i in 1 : nrow(e)){{
 
 rule plot_html:
     input:
+        'report/{taskname}.rmd',
         lambda wildcards: get_all_data(wildcards.taskname, config)
     output:
         'report/{taskname}.html'
