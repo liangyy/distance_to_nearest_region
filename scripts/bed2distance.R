@@ -13,6 +13,7 @@ opt_parser <- OptionParser(option_list=option_list)
 opt <- parse_args(opt_parser)
 
 library(dplyr)
+
 inter <- read.table(opt$intersection, header = F, sep = '\t')
 inter$junction.pos <- (inter$V5 + inter$V6 - 1) / 2
 inter$distance <- abs(inter$V2 - inter$junction.pos)
