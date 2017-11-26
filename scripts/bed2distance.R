@@ -15,7 +15,7 @@ opt <- parse_args(opt_parser)
 library(dplyr)
 inter <- tryCatch({
   read.table(opt$intersection, header = F, sep = '\t')
-}, error <- function(err){
+}, error = function(err){
   gz <- gzfile(opt$output, "w")
   write.table(data.frame(), gz, col.names = T, row.names = F, quote = F, sep = '\t')
   close(gz)
@@ -31,5 +31,5 @@ result <- inter %>%
 
 result[!result$valid, 'nearest.distance'] <- NA
 gz <- gzfile(opt$output, "w")
-write.table(result, gz, col.names = T, row.names = F, quote = F, sep = '\t')
+write.table(result, gz, col.names = F, row.names = F, quote = F, sep = '\t')
 close(gz)
